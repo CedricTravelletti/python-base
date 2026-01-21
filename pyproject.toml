@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "pre-commit>=4.2.0",
-    "pyright>=1.1.400",
     "ruff>=0.11.10",
 ]
 
@@ -14,6 +13,16 @@ dependencies = [
 [tool.uv]
 package = true
 
+# Set ruff and ty as only a local deps for development.
+[dependency-groups]
+dev = [
+    "ruff>=0.11.10",
+    "pre-commit>=4.2.0",
+    "ty>=0.0.13",
+]
+
+# Linting rules
+# -------------
 # Longer than standard 79 char max line length.
 [tool.ruff]
 line-length = 99
@@ -25,14 +34,27 @@ extend-select = [
   "D",   # pydocstyle
 ]
 
+# Defines which linter errors to ignore.
+[tool.ruff.lint.per-file-ignores]
+"*/*" = ["E712"] # Allow comparing to == True, since needed by polars.
+"src/*" = ["D104", "D102", "D105", "F722", "F401"] 
+# D10*: Allow empty docstrings in __init__.py. and in methods (including magic ones).
+# F722: Allow forward type references (needed for jaxtyping)
+# F401: allow unused import (needed for rioxarray)
+"tests/*" = ["D"] # allow undocumented tests
+"scripts/*" = ["D103"] # allow undocumented scripts
+
 # Docstring style numpy (instead of Google).
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
-# Set ruff as only a local deps for development.
-[dependency-groups]
-dev = [
-    "ruff>=0.11.10",
-    "pre-commit>=4.2.0",
-    "pyright>=1.1.400",
-]
+
+# Type Checker Configuration
+# --------------------------
+[tool.ty.rules]
+# Disable specific rules that are problematic for some packages.
+unresolved-import = "ignore"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
